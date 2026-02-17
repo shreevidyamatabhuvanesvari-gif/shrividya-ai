@@ -1,17 +1,14 @@
 /* ======================================
-   SHRIVIDYA AI — BRAIN v3
-   LEVEL 3 MINI-LLM STYLE CORE
-   Semantic → Topic → Knowledge → Rank → Emotion → Language → Memory
+   SHRIVIDYA AI — BRAIN v3 (FACT ENABLED)
+   Semantic → Topic → Knowledge → Fact → Rank → Emotion → Language
    ====================================== */
 
 var BrainV3 = (function () {
 
-    /* ---------- SAFE ACCESS ---------- */
     function safe(name) {
         return typeof window[name] !== "undefined" ? window[name] : null;
     }
 
-    /* ---------- MAIN RESPONSE PIPELINE ---------- */
     async function respond(userText) {
 
         try {
@@ -21,73 +18,74 @@ var BrainV3 = (function () {
 
             var semantic = safe("SemanticEngineV3");
             var topicBrain = safe("TopicBrainV3");
-            var knowledge = safe("KnowledgeEngineV3");   // ⭐ IMPORTANT NAME
+            var knowledge = safe("KnowledgeEngineV3");
+            var fact = safe("FactBrainV3");     // ⭐ NEW
             var ranker = safe("AnswerRankerV3");
             var memory = safe("MemoryEngineV3");
             var emotion = safe("EmotionEngineV3");
             var language = safe("LanguageEngineV3");
 
-            /* 1️⃣ SEMANTIC UNDERSTANDING */
-            var meaning = null;
-            if (semantic && semantic.analyze) {
-                meaning = semantic.analyze(text);
-            }
+            /* 1️⃣ SEMANTIC */
+            var meaning = semantic?.analyze ? semantic.analyze(text) : null;
 
-            /* 2️⃣ TOPIC DETECTION */
-            var topic = null;
-            if (topicBrain && topicBrain.detect) {
-                topic = topicBrain.detect(text, meaning);
-            }
+            /* 2️⃣ TOPIC */
+            var topic = topicBrain?.detect
+                ? topicBrain.detect(text, meaning)
+                : null;
 
-            /* 3️⃣ MEMORY CONTEXT */
-            var context = null;
-            if (memory && memory.getContext) {
-                context = memory.getContext();
-            }
+            /* 3️⃣ CONTEXT */
+            var context = memory?.getContext
+                ? memory.getContext()
+                : null;
 
-            /* 4️⃣ EMOTION DETECTION */
-            var emo = null;
-            if (emotion && emotion.detect) {
-                emo = emotion.detect(text);
-                if (memory && memory.saveMood && emo) {
-                    memory.saveMood(emo.type);
-                }
-            }
+            /* 4️⃣ EMOTION */
+            var emo = emotion?.detect
+                ? emotion.detect(text)
+                : null;
 
             /* 5️⃣ KNOWLEDGE FETCH */
             var candidates = [];
 
-            if (knowledge && knowledge.resolve) {
+            if (knowledge?.resolve) {
+                var result = await knowledge.resolve(text, topic, context);
 
-                try {
-                    var result = await knowledge.resolve(text, topic, context);
-
-                    if (result) {
-                        if (Array.isArray(result)) {
-                            candidates = result;
-                        } else {
-                            candidates = [result];
-                        }
-                    }
-
-                } catch (e) {
-                    console.log("Knowledge fetch error:", e);
+                if (result) {
+                    candidates = Array.isArray(result)
+                        ? result
+                        : [result];
                 }
             }
 
-            /* 6️⃣ ANSWER RANKING */
+            /* 6️⃣ FACT EXTRACTION ⭐⭐⭐ */
             var bestAnswer = null;
 
             if (candidates.length > 0) {
-                if (ranker && ranker.pickBest) {
-                    bestAnswer = ranker.pickBest(candidates, text, topic, context);
-                } else {
-                    bestAnswer = candidates[0];
+
+                var rawText = candidates[0];
+
+                if (fact?.extract) {
+                    var factAnswer = fact.extract(rawText, text);
+                    if (factAnswer) {
+                        bestAnswer = factAnswer;
+                    }
+                }
+
+                if (!bestAnswer) {
+                    if (ranker?.pickBest) {
+                        bestAnswer = ranker.pickBest(
+                            candidates,
+                            text,
+                            topic,
+                            context
+                        );
+                    } else {
+                        bestAnswer = rawText;
+                    }
                 }
             }
 
             /* 7️⃣ MEMORY SAVE */
-            if (memory && memory.addConversation) {
+            if (memory?.addConversation) {
                 memory.addConversation({
                     user: text,
                     topic: topic,
@@ -96,7 +94,7 @@ var BrainV3 = (function () {
             }
 
             /* 8️⃣ LANGUAGE BUILD */
-            if (language && language.build) {
+            if (language?.build) {
                 return language.build({
                     text: text,
                     topic: topic,
