@@ -1,17 +1,19 @@
 /* ======================================
-   SHRIVIDYA AI — FACT BRAIN v3
-   Extracts Exact Answers from Knowledge Text
-   LEVEL 3 CORE INTELLIGENCE LAYER
+   SHRIVIDYA AI — FACT BRAIN v3 (UPDATED)
+   Strong Fact Extraction Engine
+   Person / Year / Place / Number
    ====================================== */
 
 var FactBrainV3 = (function () {
 
-    /* ---------- Detect Fact Type ---------- */
     function detectType(question) {
 
         question = (question || "").toLowerCase();
 
         if (question.includes("कौन"))
+            return "person";
+
+        if (question.includes("प्रथम"))
             return "person";
 
         if (question.includes("कब"))
@@ -20,65 +22,67 @@ var FactBrainV3 = (function () {
         if (question.includes("कहाँ") || question.includes("कहां"))
             return "place";
 
-        if (question.includes("कितने") || question.includes("संख्या"))
-            return "number";
-
         if (question.includes("राजधानी"))
             return "place";
 
-        if (question.includes("प्रथम"))
-            return "person";
+        if (question.includes("कितने") || question.includes("संख्या"))
+            return "number";
 
         return "general";
     }
 
-    /* ---------- Extract Year ---------- */
+    /* ---------- YEAR ---------- */
     function extractYear(text) {
         var match = text.match(/\d{4}/);
-        if (match) return match[0];
-        return null;
+        return match ? match[0] : null;
     }
 
-    /* ---------- Extract Person Name ---------- */
+    /* ---------- PERSON ---------- */
     function extractPerson(text) {
 
-        var lines = text.split(".");
+        var patterns = [
+            "थे",
+            "हैं",
+            "था",
+            "हुए",
+            "पहले",
+            "प्रथम"
+        ];
 
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
+        var sentences = text.split("।");
 
-            if (
-                line.includes("थे") ||
-                line.includes("हैं") ||
-                line.includes("था") ||
-                line.includes("हुए")
-            ) {
-                return line.trim();
+        for (var i = 0; i < sentences.length; i++) {
+            var line = sentences[i].trim();
+
+            for (var j = 0; j < patterns.length; j++) {
+                if (line.includes(patterns[j]) && line.length < 120) {
+                    return line;
+                }
             }
         }
 
         return null;
     }
 
-    /* ---------- Extract Number ---------- */
+    /* ---------- NUMBER ---------- */
     function extractNumber(text) {
         var match = text.match(/\d+/);
-        if (match) return match[0];
-        return null;
+        return match ? match[0] : null;
     }
 
-    /* ---------- Extract Place ---------- */
+    /* ---------- PLACE ---------- */
     function extractPlace(text) {
 
-        var lines = text.split(".");
+        var sentences = text.split("।");
 
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
+        for (var i = 0; i < sentences.length; i++) {
+            var line = sentences[i];
 
             if (
+                line.includes("राजधानी") ||
                 line.includes("स्थित") ||
                 line.includes("में है") ||
-                line.includes("में स्थित")
+                line.includes("है")
             ) {
                 return line.trim();
             }
@@ -87,7 +91,7 @@ var FactBrainV3 = (function () {
         return null;
     }
 
-    /* ---------- MAIN FACT PICKER ---------- */
+    /* ---------- MAIN ---------- */
     function extract(text, question) {
 
         if (!text) return null;
@@ -96,7 +100,7 @@ var FactBrainV3 = (function () {
 
         if (type === "year") {
             var y = extractYear(text);
-            if (y) return "यह घटना " + y + " में हुई थी।";
+            if (y) return y + " में";
         }
 
         if (type === "person") {
@@ -106,7 +110,7 @@ var FactBrainV3 = (function () {
 
         if (type === "number") {
             var n = extractNumber(text);
-            if (n) return "संख्या लगभग " + n + " है।";
+            if (n) return n;
         }
 
         if (type === "place") {
