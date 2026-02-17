@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Shrividya AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <h1>Shrividya AI</h1>
+        <p class="tagline">Mini LLM Style Knowledge System</p>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="अपना प्रश्न लिखें..." />
+            <button onclick="sendMessage()">भेजें</button>
+        </div>
+
+    </div>
+
+    <!-- ============================= -->
+    <!-- DATA LAYER (LOAD FIRST) -->
+    <!-- ============================= -->
+    <script src="js/data/bharat_kosh_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- CORE MEMORY -->
+    <!-- ============================= -->
+    <script src="js/memory_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- MEANING UNDERSTANDING -->
+    <!-- ============================= -->
+    <script src="js/semantic_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- TOPIC DETECTION -->
+    <!-- ============================= -->
+    <script src="js/topic_brain_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- KNOWLEDGE SOURCE -->
+    <!-- ============================= -->
+    <script src="js/knowledge_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- ANSWER SELECTION -->
+    <!-- ============================= -->
+    <script src="js/answer_ranker_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- EMOTION LAYER -->
+    <!-- ============================= -->
+    <script src="js/emotion_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- LANGUAGE BUILDER -->
+    <!-- ============================= -->
+    <script src="js/language_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- MAIN BRAIN (LOAD LAST) -->
+    <!-- ============================= -->
+    <script src="js/brain_v3.js"></script>
+
+    <!-- ============================= -->
+    <!-- BASIC UI SCRIPT -->
+    <!-- ============================= -->
+    <script>
+        async function sendMessage() {
+
+            var input = document.getElementById("userInput");
+            var chatBox = document.getElementById("chatBox");
+
+            var text = input.value.trim();
+            if (!text) return;
+
+            // user message
+            chatBox.innerHTML += "<div class='user'>" + text + "</div>";
+
+            input.value = "";
+
+            // AI response
+            if (typeof BrainV3 !== "undefined") {
+                var reply = await BrainV3.respond(text);
+                chatBox.innerHTML += "<div class='ai'>" + reply + "</div>";
+            } else {
+                chatBox.innerHTML += "<div class='ai'>BrainV3 load नहीं हुआ</div>";
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
