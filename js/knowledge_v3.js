@@ -1,12 +1,14 @@
 /* ======================================
    SHRIVIDYA KNOWLEDGE ENGINE v3
    Wikipedia Connector (LEVEL 3)
-   Summary + Search + Fallback System
+   Summary + Search + Fallback
    ====================================== */
 
-var KnowledgeV3 = (function () {
+var KnowledgeEngineV3 = (function () {
 
-    const API_SUMMARY = "https://hi.wikipedia.org/api/rest_v1/page/summary/";
+    const API_SUMMARY =
+        "https://hi.wikipedia.org/api/rest_v1/page/summary/";
+
     const API_SEARCH =
         "https://hi.wikipedia.org/w/api.php?action=query&list=search&format=json&origin=*&srsearch=";
 
@@ -50,12 +52,12 @@ var KnowledgeV3 = (function () {
             if (!res.ok) return null;
 
             var data = await res.json();
-
             if (data && data.extract) {
                 return data.extract;
             }
 
             return null;
+
         } catch (e) {
             console.log("Summary fetch error:", e);
             return null;
@@ -80,13 +82,14 @@ var KnowledgeV3 = (function () {
             }
 
             return null;
+
         } catch (e) {
             console.log("Search error:", e);
             return null;
         }
     }
 
-    /* ---------- Deep Resolve ---------- */
+    /* ---------- MAIN RESOLVE ---------- */
     async function resolve(text) {
 
         var topic = guessTopic(text);
